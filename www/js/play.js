@@ -24,7 +24,7 @@ var healthPrice = 25;
 var powerPrice = 50;
 var positionTracked = false;
 var totalZombies = 15;
-var zombiesTargetPosition;
+var zombiesTargetPosition = new google.maps.LatLng();
 var autosaveTimer;
 
 var app = {
@@ -169,6 +169,8 @@ function Zombie(pos) {
             if (status == google.maps.DirectionsStatus.OK) {
                 route = result.routes[0].overview_path;
                 checkPosition();
+            } else {
+                console.log('Route not found..');
             }
         });
     }
@@ -222,7 +224,7 @@ function Zombie(pos) {
     
     function checkPosition() {
         dist = google.maps.geometry.spherical.computeDistanceBetween(getPosition(),playerMarker.getPosition());
-	    if(dist<zombieAwareRadius){
+	    if(dist<=zombieAwareRadius){
 		startMove();
 	    }else if(dist>zombieAsleepRadius){
 		stopMove();
@@ -271,12 +273,11 @@ function Zombie(pos) {
         isInPlayerVisibleRadius:isInPlayerVisibleRadius,
         spawn:spawn,
         moveTimer:moveTimer,
+        checkPosition:checkPosition,
     };
 }
 
 function checkZombies() {
-    var zom;
-    var dist;
     var i;
     for(i in zombies){
         zombies[i].checkPosition();
