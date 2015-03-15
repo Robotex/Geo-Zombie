@@ -24,8 +24,8 @@ var healthPrice = 25;
 var powerPrice = 50;
 var positionTracked = false;
 var totalZombies = 15;
-var zombiesTargetPosition = new google.maps.LatLng();
 var autosaveTimer;
+var lastZombiesDestination;
 
 var app = {
     // Application Constructor
@@ -121,6 +121,7 @@ function Zombie(pos) {
         var pos = google.maps.geometry.spherical.computeOffset(center,dist,heading);
         mapMarker.setPosition(pos);
         panoramaMarker.setPosition(pos);
+        
         setVisible(true);
     }
     
@@ -170,7 +171,7 @@ function Zombie(pos) {
                 route = result.routes[0].overview_path;
                 checkPosition();
             } else {
-                console.log('Route not found..');
+                console.log('Route not found.. [' + status + ']');
             }
         });
     }
@@ -234,7 +235,6 @@ function Zombie(pos) {
     function isInPlayerVisibleRadius() {
         return (google.maps.geometry.spherical.computeDistanceBetween(mapMarker.getPosition(), playerMarker.getPosition()) <= zombieVisibleRadius);
     }
-    
     
     function hit() {
         flash();
@@ -357,9 +357,9 @@ var game = {
                 if (!positionTracked) {
                     positionTracked = true;
                     game.start();
-                } else {
-                    game.positionUpdated();
                 }
+                
+                game.positionUpdated();
 
             }, function(error) {
                 if (error.code == error.PERMISSION_DENIED)
@@ -433,29 +433,29 @@ var game = {
     createZombies : function() {
         var newZombie;
         var i;
-        zombiesTargetPosition = playerMarker.getPosition();
         for(i=0;i<totalZombies;i++) {
             if (zombies.length < totalZombies)
                 newZombie = new Zombie();
             else
                 newZombie = zombies[i+1];
             newZombie.spawn();
-            newZombie.redirect();
             zombies.push(newZombie);
         }
     },
     
     recalculateZombiesDirections : function() {
-        var i;
-        for (i in zombies) {
-            zombies[i].redirect();
-        }
+        zombies.forEach(function(value, index, array) {
+	    if (google.maps.geometry.spherical.computeDistanceBetween(value.getPosition(),playerMarker.getPosition())<=zombieAwareRadius) {
+                value.redirect();
+            }
+        });
     },
     
     positionUpdated : function() {
-        if (google.maps.geometry.spherical.computeDistanceBetween(zombiesTargetPosition, playerMarker.getPosition()) > 10) {
-            zombiesTargetPosition = playerMarker.getPosition();
+        var playerPosition = playerMarker.getPosition();
+        if (!lastZombiesDestination || google.maps.geometry.spherical.computeDistanceBetween(lastZombiesDestination, playerMarker.getPosition()) > 10) {
             game.recalculateZombiesDirections();
+            lastZombiesDestination = new google.maps.LatLng(playerPosition.lat(), playerPosition.lng());
         }
     },
     
