@@ -6,5 +6,5 @@ $(document).ready(function() {
         $('#map-container').css('width', viewportWidth-controlWidth);
     });
     
-    $(window).trigger('resize');
+    $(window).resize();
 });
