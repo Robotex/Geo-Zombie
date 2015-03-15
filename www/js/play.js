@@ -444,11 +444,21 @@ var game = {
     },
     
     recalculateZombiesDirections : function() {
+        
+        (function myLoop (i) {
+            if (google.maps.geometry.spherical.computeDistanceBetween(zombies[i-1].getPosition(),playerMarker.getPosition())<=zombieAwareRadius) {
+               setTimeout(function () {   
+                  zombies[i-1].redirect();          //  your code here                
+                  if (--i) myLoop(i);      //  decrement i and call myLoop again if i > 0
+               }, 200);
+            } else  if (--i) myLoop(i);
+        })(zombies.length);                        //  pass the number of iterations as an argument
+/*
         zombies.forEach(function(value, index, array) {
 	    if (google.maps.geometry.spherical.computeDistanceBetween(value.getPosition(),playerMarker.getPosition())<=zombieAwareRadius) {
                 value.redirect();
             }
-        });
+        });*/
     },
     
     positionUpdated : function() {
